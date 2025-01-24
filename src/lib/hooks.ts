@@ -35,21 +35,25 @@ const fetchJobItemContent = async (
 }
 
 export function useJobItemContent(id: number | null) {
-	const { data, isInitialLoading } = useQuery(
-		['job-item', id],
-		() => (id ? fetchJobItemContent(id) : null),
-		{
-			staleTime: 1000 * 60 * 60,
-			refetchOnWindowFocus: false,
-			retry: false,
-			enabled: Boolean(id),
-			onError: handleError,
-		}
-	)
+	const { data, isLoading, isFetching, isError, error } = useQuery({
+		queryKey: ['job-item', id],
+		queryFn: () => (id ? fetchJobItemContent(id) : null),
+		staleTime: 1000 * 60 * 60, // 1 час
+		refetchOnWindowFocus: false,
+		retry: false,
+		enabled: Boolean(id),
+	});
+
+	if (isError) {
+		handleError(error);
+	}
+
+	const isInitialLoad = isLoading && !isFetching;
+
 	return {
 		jobItemContent: data?.jobItem,
-		isLoading: isInitialLoading,
-	} as const
+		isLoading: isInitialLoad,
+	} as const;
 }
 
 // ---------------------------
@@ -107,22 +111,27 @@ export function useJobItems(ids: number[]) {
 }
 
 export function useSearchQuery(searchText: string) {
-	const { data, isInitialLoading } = useQuery(
-		['job-items', searchText],
-		() => fetchJobItems(searchText),
-		{
-			staleTime: 1000 * 60 * 60,
-			refetchOnWindowFocus: false,
-			retry: false,
-			enabled: Boolean(searchText),
-			onError: handleError,
-		}
-	)
+	const { data, isLoading, isFetching, isError, error } = useQuery({
+		queryKey: ['job-items', searchText],
+		queryFn: () => fetchJobItems(searchText),
+		staleTime: 1000 * 60 * 60, // 1 час
+		refetchOnWindowFocus: false,
+		retry: false,
+		enabled: Boolean(searchText),
+	});
+
+	// Логируем ошибку вручную, если есть
+	if (isError) {
+		handleError(error); // Вызов вашей функции обработки ошибок
+	}
+
+	// Определяем состояние первой загрузки
+	const isInitialLoad = isLoading && !isFetching;
 
 	return {
 		jobItems: data?.jobItems,
-		isLoading: isInitialLoading,
-	} as const
+		isLoading: isInitialLoad,
+	} as const;
 }
 
 // ---------------------------
@@ -163,7 +172,7 @@ export function useLocalStorage<T>(
 }
 
 export function useOnClickOutside(
-	refs: React.RefObject<HTMLElement>[],
+	refs: React.RefObject<HTMLElement | null>[],
 	handle: () => void
 ) {
 	useEffect(() => {

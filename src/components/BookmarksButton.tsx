@@ -5,8 +5,8 @@ import BookmarksPopover from './BookmarksPopover'
 
 export default function BookmarksButton() {
 	const [isPopover, setIsPopover] = useState(false)
-	const buttonRef = useRef<HTMLButtonElement>(null)
-	const popoverRef = useRef<HTMLDivElement>(null)
+	const buttonRef = useRef<HTMLButtonElement | null>(null)
+	const popoverRef = useRef<HTMLDivElement | null>(null)
 
 	useOnClickOutside([buttonRef, popoverRef], () => setIsPopover(false))
 
